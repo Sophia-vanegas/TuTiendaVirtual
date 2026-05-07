@@ -39,12 +39,14 @@ TRIGGERS = {
                 FROM productos p WHERE p.id_producto = NEW.id_producto;
 
                 IF v_stock < NEW.cantidad_comprada THEN
+
                     SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Stock insuficiente';
                 END IF;
             END IF;
         END
         """
     ),
+
     "au_compras_descuenta_stock_al_confirmar": DDL(
         """
         CREATE TRIGGER au_compras_descuenta_stock_al_confirmar

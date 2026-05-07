@@ -5,7 +5,9 @@ Modelo Administrador: única cuenta fija con credenciales.
 
 from __future__ import annotations
 
-from sqlalchemy import CheckConstraint, Column, Integer, PrimaryKeyConstraint, String, UniqueConstraint
+from sqlalchemy import CheckConstraint, Column, Integer, String, UniqueConstraint, PrimaryKeyConstraint
+
+
 
 from .base import Base
 
@@ -26,9 +28,9 @@ class Administrador(Base):
     contraseña = Column(String(255), nullable=False)
 
 
+    # MySQL no permite CHECK constraints que referencien columnas AUTO_INCREMENT.
     __table_args__ = (
-        PrimaryKeyConstraint("id_admin"),
-        CheckConstraint("id_admin = 1", name="chk_admin_id_fijo"),
         UniqueConstraint("usuario", name="uq_admin_usuario"),
     )
+
 
