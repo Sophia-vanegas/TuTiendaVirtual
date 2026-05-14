@@ -1,0 +1,178 @@
+"use client"
+
+import Link from "next/link"
+import { ShoppingCart, User, Store, Menu, X } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { useCart } from "@/contexts/cart-context"
+import { useState } from "react"
+
+interface HeaderProps {
+  user?: { email: string; user_metadata?: { is_admin?: boolean; nombre?: string } } | null
+}
+
+export function Header({ user }: HeaderProps) {
+  const { getItemCount } = useCart()
+  const itemCount = getItemCount()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  return (
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-card shadow-sm">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 items-center justify-between">
+          <Link href="/" className="flex items-center gap-2">
+            <Store className="h-8 w-8 text-primary" />
+            <span className="text-xl font-bold text-foreground">Mi Tienda</span>
+          </Link>
+
+          {/* Desktop Navigation */}
+          <nav className="hidden items-center gap-6 md:flex">
+            <Link
+              href="/"
+              className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
+            >
+              Inicio
+            </Link>
+            <Link
+              href="/productos"
+              className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
+            >
+              Productos
+            </Link>
+            {user && (
+              <Link
+                href="/mis-compras"
+                className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
+              >
+                Mis Compras
+              </Link>
+            )}
+            {user?.user_metadata?.is_admin && (
+              <Link
+                href="/admin"
+                className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
+              >
+                Administrar
+              </Link>
+            )}
+          </nav>
+
+          <div className="flex items-center gap-3">
+            <Link href="/carrito" className="relative">
+              <Button variant="ghost" size="icon" className="relative">
+                <ShoppingCart className="h-5 w-5" />
+                {itemCount > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-xs font-bold text-accent-foreground">
+                    {itemCount}
+                  </span>
+                )}
+                <span className="sr-only">Ver carrito</span>
+              </Button>
+            </Link>
+
+            {user ? (
+              <div className="hidden items-center gap-2 md:flex">
+                <Link href="/perfil">
+                  <Button variant="ghost" size="sm" className="gap-2">
+                    <User className="h-4 w-4" />
+                    <span className="max-w-24 truncate">
+                      {user.user_metadata?.nombre || user.email.split("@")[0]}
+                    </span>
+                  </Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="hidden gap-2 md:flex">
+                <Link href="/auth/login">
+                  <Button variant="ghost" size="sm">
+                    Ingresar
+                  </Button>
+                </Link>
+                <Link href="/auth/registro">
+                  <Button size="sm">Registrarse</Button>
+                </Link>
+              </div>
+            )}
+
+            {/* Mobile menu button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
+              <span className="sr-only">Menu</span>
+            </Button>
+          </div>
+        </div>
+
+        {/* Mobile Navigation */}
+        {mobileMenuOpen && (
+          <div className="border-t border-border pb-4 pt-2 md:hidden">
+            <nav className="flex flex-col gap-2">
+              <Link
+                href="/"
+                className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-primary"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Inicio
+              </Link>
+              <Link
+                href="/productos"
+                className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-primary"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Productos
+              </Link>
+              {user && (
+                <Link
+                  href="/mis-compras"
+                  className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-primary"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Mis Compras
+                </Link>
+              )}
+              {user?.user_metadata?.is_admin && (
+                <Link
+                  href="/admin"
+                  className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-primary"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Administrar
+                </Link>
+              )}
+              <div className="mt-2 border-t border-border pt-2">
+                {user ? (
+                  <Link
+                    href="/perfil"
+                    className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-primary"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <User className="h-4 w-4" />
+                    Mi Perfil
+                  </Link>
+                ) : (
+                  <div className="flex flex-col gap-2 px-3">
+                    <Link href="/auth/login" onClick={() => setMobileMenuOpen(false)}>
+                      <Button variant="outline" className="w-full">
+                        Ingresar
+                      </Button>
+                    </Link>
+                    <Link href="/auth/registro" onClick={() => setMobileMenuOpen(false)}>
+                      <Button className="w-full">Registrarse</Button>
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </nav>
+          </div>
+        )}
+      </div>
+    </header>
+  )
+}
