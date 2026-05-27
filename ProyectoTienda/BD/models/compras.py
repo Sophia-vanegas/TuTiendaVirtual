@@ -9,7 +9,7 @@ Compatible con el Frontend (Supabase-like):
 
 from __future__ import annotations
 
-from sqlalchemy import CheckConstraint, DateTime, Integer, Numeric, String, func, Column
+from sqlalchemy import CheckConstraint, DateTime, Integer, Numeric, String, func, Column, ForeignKey
 from sqlalchemy.orm import relationship
 
 from .base import Base
@@ -19,7 +19,7 @@ class Compra(Base):
     __tablename__ = "compras"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    cliente_id = Column(Integer, nullable=False)
+    cliente_id = Column(Integer, ForeignKey("clientes.id"), nullable=False)
     total = Column(Numeric(12, 2), nullable=False)
 
     created_at = Column(DateTime, default=func.now())
@@ -37,8 +37,8 @@ class DetalleCompra(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
 
-    compra_id = Column(Integer, nullable=False)
-    producto_id = Column(Integer, nullable=False)
+    compra_id = Column(Integer, ForeignKey("compras.id"), nullable=False)
+    producto_id = Column(Integer, ForeignKey("productos.id"), nullable=False)
 
     producto_nombre = Column(String(255), nullable=False)
     cantidad = Column(Integer, nullable=False)

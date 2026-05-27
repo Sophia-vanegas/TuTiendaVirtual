@@ -30,9 +30,10 @@ from BD.seed.seed_data import seed_example_data
 def ensure_database_exists() -> None:
     engine_admin = create_engine(DATABASE_URL_NO_DB, future=True)
     with engine_admin.connect() as conn:
+        conn.execute(text(f"DROP DATABASE IF EXISTS `{DB_NAME}`"))
         conn.execute(
             text(
-                f"CREATE DATABASE IF NOT EXISTS `{DB_NAME}` CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci"
+                f"CREATE DATABASE `{DB_NAME}` CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci"
             )
         )
         conn.commit()
