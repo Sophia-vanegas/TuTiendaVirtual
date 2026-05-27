@@ -1,4 +1,3 @@
-
 """BD/models/clientes.py
 
 Modelo Cliente compatible con el Frontend.
@@ -12,7 +11,7 @@ Columnas esperadas:
 - cedula, nombre, apellidos, email, celular, direccion
 - created_at
 
-Se conservan campos internos (usuario/contraseña) para el flujo actual si aplica.
+Se conservan campos de credenciales para el flujo actual si aplica.
 """
 
 from __future__ import annotations
@@ -29,35 +28,27 @@ class Cliente(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
 
+    user_id = Column(String(60), nullable=False, index=True)
 
-    user_id = String(60)
-
-    cedula = String(20, collation="utf8mb4_0900_ai_ci")
-    nombre = String(100)
-    apellidos = String(150)
-    email = String(150)
-    celular = String(30)
-    direccion = Text()
+    cedula = Column(String(20, ), nullable=False)
+    nombre = Column(String(100), nullable=False)
+    apellidos = Column(String(150), nullable=False)
+    email = Column(String(150), nullable=False, index=True)
+    celular = Column(String(30))
+    direccion = Column(Text())
 
     # Campos usados por seed/autenticación local (se conservan)
-    usuario = String(60)
-    contrasena = String(255)
-
-
-
-
-
+    usuario = Column(String(60))
+    contraseña = Column(String(255))
 
     created_at = Column(DateTime, default=func.now())
-
 
     compras = relationship(
         "Compra", back_populates="cliente", cascade="all, delete-orphan"
     )
 
-    # Mantener constraints; sin embargo, no forzarlas aquí para evitar errores
-    # si el esquema/seed no está actualizado aún.
-    __table_args__ = ()
-
-
+    __table_args__ = (
+        UniqueConstraint("email", name="uq_clientes_email"),
+        UniqueConstraint("user_id", name="uq_clientes_user_id"),
+    )
 

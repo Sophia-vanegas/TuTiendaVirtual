@@ -13,7 +13,6 @@ Ejecutar:
 from __future__ import annotations
 
 from sqlalchemy import create_engine, text
-from sqlalchemy.orm import Session
 
 from BD.config.mysql import DATABASE_URL, DATABASE_URL_NO_DB, DB_NAME
 from BD.models.base import Base

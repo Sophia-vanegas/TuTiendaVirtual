@@ -1,6 +1,7 @@
 """BD/seed/seed_data.py
 
-Carga de datos de ejemplo:
+Carga de datos de ejemplo.
+
 - 1 administrador (admin/admin123 hasheada)
 - 3 productos
 - 2 clientes
@@ -12,27 +13,23 @@ from __future__ import annotations
 
 from sqlalchemy.orm import Session
 
-from BD.config.mysql import DATABASE_URL
 from BD.models.administrador import Administrador
 from BD.models.clientes import Cliente
 from BD.models.productos import Producto
-from BD.models.base import Base
 from BD.utils.security import generate_username, hash_password_sha256
 
 
 def seed_example_data(engine, with_admin: bool = True) -> None:
     with Session(engine) as session:
-        # Productos (seed mínimo; compras/detalles no se insertan en este proyecto)
+        # Productos (Front esperará: productos.id, productos.nombre, tipo_producto, cantidad, precio)
         productos = [
             Producto(id=1, nombre="Gaseosa Cola 350ml", tipo_producto="bebida", cantidad=50, precio=3500),
             Producto(id=2, nombre="Detergente 1kg", tipo_producto="aseo", cantidad=30, precio=9000),
             Producto(id=3, nombre="Arroz 1kg", tipo_producto="comida", cantidad=80, precio=5500),
         ]
-
         session.add_all(productos)
 
-
-        # Clientes
+        # Clientes (Front esperará: clientes.id, clientes.user_id, etc.)
         seed_clientes = [
             {
                 "cedula": "1234567890",
@@ -56,11 +53,11 @@ def seed_example_data(engine, with_admin: bool = True) -> None:
         for c in seed_clientes:
             usuario = generate_username(c["nombre"], c["apellidos"]) + "_" + c["cedula"][-4:]
             password_plain = "TempPass!" + c["cedula"][-3:]
+
             clientes.append(
                 Cliente(
                     user_id=f"seed_user_{c['cedula']}",
                     cedula=c["cedula"],
-
                     nombre=c["nombre"],
                     apellidos=c["apellidos"],
                     email=c["email"],
@@ -70,6 +67,7 @@ def seed_example_data(engine, with_admin: bool = True) -> None:
                     contraseña=hash_password_sha256(password_plain),
                 )
             )
+
         session.add_all(clientes)
 
         # Administrador

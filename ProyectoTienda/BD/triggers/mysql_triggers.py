@@ -2,15 +2,21 @@
 
 Trigers MySQL (DDL) para validar producto/stock y descontar inventario.
 
-Se ejecutan desde el entrypoint.
+Notas:
+- El Frontend descuenta stock manualmente (en /api/compras). Aun así, dejamos triggers
+  de validación para asegurar consistencia.
+- Se requiere el esquema compatible con el Frontend:
+  - productos: id, cantidad
+  - compras: id
+  - detalle_compras: compra_id, producto_id, cantidad
 """
 
 from __future__ import annotations
 
 from sqlalchemy import DDL, text
 
+
 TRIGGERS = {
-    # Valida que el producto exista antes de insertar un detalle.
     "bi_detalle_validar_producto_existente": DDL(
         """
         CREATE TRIGGER bi_detalle_validar_producto_existente
@@ -23,8 +29,6 @@ TRIGGERS = {
         END
         """
     ),
-
-    # Valida stock suficiente al insertar cada detalle (ya no existe `confirmada`).
     "bi_detalle_validar_stock_suficiente": DDL(
         """
         CREATE TRIGGER bi_detalle_validar_stock_suficiente
@@ -42,27 +46,11 @@ TRIGGERS = {
         END
         """
     ),
-
-    # Descuenta inventario inmediatamente al insertar el detalle.
-    "ai_detalle_descuenta_stock": DDL(
-        """
-        CREATE TRIGGER ai_detalle_descuenta_stock
-        AFTER INSERT ON detalle_compras
-        FOR EACH ROW
-        BEGIN
-            UPDATE productos p
-            SET p.cantidad = p.cantidad - NEW.cantidad
-            WHERE p.id = NEW.producto_id;
-        END
-        """
-    ),
 }
-
 
 
 def drop_triggers_if_exist(conn) -> None:
     """Dropea triggers si existen (MySQL no soporta IF EXISTS para todas las situaciones)."""
     for name in TRIGGERS.keys():
-        # nombres = keys (coinciden con los definidos en CREATE TRIGGER)
         conn.execute(text(f"DROP TRIGGER IF EXISTS `{name}`"))
 
