@@ -4,14 +4,13 @@ import Link from "next/link"
 import { ShoppingCart, User, Store, Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useCart } from "@/contexts/cart-context"
+import { useAuth } from "@/contexts/auth-context"
 import { useState } from "react"
+import { LogOut } from "lucide-react"
 
-interface HeaderProps {
-  user?: { email: string; user_metadata?: { is_admin?: boolean; nombre?: string } } | null
-}
-
-export function Header({ user }: HeaderProps) {
+export function Header() {
   const { getItemCount } = useCart()
+  const { user, logout } = useAuth()
   const itemCount = getItemCount()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
@@ -33,10 +32,10 @@ export function Header({ user }: HeaderProps) {
               Inicio
             </Link>
             <Link
-              href="/productos"
+              href={user?.rol === 'cliente' ? "/cliente/tienda" : "/productos"}
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
             >
-              Productos
+              Tienda
             </Link>
             {user && (
               <Link
@@ -46,7 +45,7 @@ export function Header({ user }: HeaderProps) {
                 Mis Compras
               </Link>
             )}
-            {user?.user_metadata?.is_admin && (
+            {user?.rol === 'admin' && (
               <Link
                 href="/admin"
                 className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
@@ -75,10 +74,13 @@ export function Header({ user }: HeaderProps) {
                   <Button variant="ghost" size="sm" className="gap-2">
                     <User className="h-4 w-4" />
                     <span className="max-w-24 truncate">
-                      {user.user_metadata?.nombre || user.email.split("@")[0]}
+                      {user.nombre}
                     </span>
                   </Button>
                 </Link>
+                <Button variant="ghost" size="icon" onClick={logout} title="Cerrar Sesión">
+                  <LogOut className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+                </Button>
               </div>
             ) : (
               <div className="hidden gap-2 md:flex">
@@ -122,11 +124,11 @@ export function Header({ user }: HeaderProps) {
                 Inicio
               </Link>
               <Link
-                href="/productos"
+                href={user?.rol === 'cliente' ? "/cliente/tienda" : "/productos"}
                 className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-primary"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Productos
+                Tienda
               </Link>
               {user && (
                 <Link
@@ -137,7 +139,7 @@ export function Header({ user }: HeaderProps) {
                   Mis Compras
                 </Link>
               )}
-              {user?.user_metadata?.is_admin && (
+              {user?.rol === 'admin' && (
                 <Link
                   href="/admin"
                   className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-primary"

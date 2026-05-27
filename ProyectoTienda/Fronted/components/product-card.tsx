@@ -62,7 +62,7 @@ export function ProductCard({ producto }: ProductCardProps) {
             {producto.tipo_producto}
           </span>
           <div className="mt-auto pt-2">
-            <p className="text-lg font-bold text-primary">
+            <p className="text-lg font-bold text-primary" suppressHydrationWarning>
               {formatPrice(producto.precio)}
             </p>
             <p className="text-xs text-muted-foreground">

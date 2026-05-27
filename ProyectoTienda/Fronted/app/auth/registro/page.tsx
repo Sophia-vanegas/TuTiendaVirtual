@@ -3,12 +3,12 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { createClient } from "@/lib/supabase/client"
+import { apiClient } from "@/lib/api-client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Store, Mail, Lock, User, Phone, MapPin, CreditCard, Loader2 } from "lucide-react"
+import { Store, Mail, Lock, User, Phone, MapPin, CreditCard, Loader2, CheckCircle2 } from "lucide-react"
 
 export default function RegistroPage() {
   const [formData, setFormData] = useState({
@@ -18,11 +18,10 @@ export default function RegistroPage() {
     email: "",
     celular: "",
     direccion: "",
-    password: "",
-    confirmPassword: "",
   })
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [successInfo, setSuccessInfo] = useState<string | null>(null)
   const router = useRouter()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -32,58 +31,19 @@ export default function RegistroPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
-
-    if (formData.password !== formData.confirmPassword) {
-      setError("Las contrasenas no coinciden")
-      return
-    }
-
-    if (formData.password.length < 6) {
-      setError("La contrasena debe tener al menos 6 caracteres")
-      return
-    }
-
     setIsLoading(true)
 
-    const supabase = createClient()
-
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email: formData.email,
-      password: formData.password,
-      options: {
-        emailRedirectTo:
-          process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ??
-          `${window.location.origin}/auth/callback`,
-        data: {
-          nombre: formData.nombre,
-          apellidos: formData.apellidos,
-        },
-      },
-    })
-
-    if (authError) {
-      setError(authError.message)
+    try {
+      const data = await apiClient.register(formData)
+      setSuccessInfo(data.debug_password_info)
+      // En un flujo real redirigiríamos después de unos segundos o a una página de éxito
+      setTimeout(() => {
+        router.push("/auth/login")
+      }, 5000)
+    } catch (err: any) {
+      setError(err.message || "Error al registrarse")
       setIsLoading(false)
-      return
     }
-
-    if (authData.user) {
-      const { error: clienteError } = await supabase.from("clientes").insert({
-        user_id: authData.user.id,
-        cedula: formData.cedula,
-        nombre: formData.nombre,
-        apellidos: formData.apellidos,
-        email: formData.email,
-        celular: formData.celular,
-        direccion: formData.direccion,
-      })
-
-      if (clienteError) {
-        console.log("[v0] Error creating cliente:", clienteError)
-      }
-    }
-
-    router.push("/auth/registro-exitoso")
   }
 
   return (
@@ -199,36 +159,21 @@ export default function RegistroPage() {
               </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="password">Contrasena</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="password"
-                    name="password"
-                    type="password"
-                    placeholder="Minimo 6 caracteres"
-                    value={formData.password}
-                    onChange={handleChange}
-                    className="pl-10"
-                    required
-                  />
-                </div>
+            {successInfo && (
+              <div className="rounded-lg bg-primary/10 p-4 text-center border border-primary/20">
+                <CheckCircle2 className="mx-auto h-8 w-8 text-primary mb-2" />
+                <h4 className="font-bold text-primary">¡Registro Exitoso!</h4>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Tu usuario es tu correo electrónico.
+                </p>
+                <p className="text-sm font-mono bg-background p-2 mt-2 rounded border">
+                  {successInfo}
+                </p>
+                <p className="text-xs text-muted-foreground mt-2 italic">
+                  Redirigiendo al login en 5 segundos...
+                </p>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirmar contrasena</Label>
-                <Input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  placeholder="Repite tu contrasena"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-            </div>
+            )}
 
             {error && (
               <p className="text-sm text-destructive">{error}</p>

@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server"
+import { apiClient } from "@/lib/api-client"
 import { Header } from "@/components/header"
 import { ProductCard } from "@/components/product-card"
 import { Button } from "@/components/ui/button"
@@ -6,22 +6,14 @@ import { ArrowRight, Package, Truck, Shield } from "lucide-react"
 import Link from "next/link"
 
 export default async function HomePage() {
-  const supabase = await createClient()
+  const user = null // Temporalmente sin usuario
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const productos = await apiClient.getProductos()
 
-  const { data: productos } = await supabase
-    .from("productos")
-    .select("*")
-    .gt("cantidad", 0)
-    .order("created_at", { ascending: false })
-    .limit(8)
 
   return (
     <div className="min-h-screen bg-background">
-      <Header user={user} />
+      <Header />
 
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-background to-accent/10 py-16 md:py-24">

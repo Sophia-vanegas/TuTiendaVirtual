@@ -1,15 +1,11 @@
-import { createClient } from "@/lib/supabase/server"
+import { apiClient } from "@/lib/api-client"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ProductsTable } from "./products-table"
 import { AddProductDialog } from "./add-product-dialog"
 
 export default async function AdminProductosPage() {
-  const supabase = await createClient()
+  const productos = await apiClient.getAdminProductos()
 
-  const { data: productos } = await supabase
-    .from("productos")
-    .select("*")
-    .order("nombre", { ascending: true })
 
   return (
     <div className="p-8">

@@ -19,27 +19,26 @@ import {
 } from "@/components/ui/dialog"
 import { ShoppingCart, Eye, Package } from "lucide-react"
 
-interface CompraConDetalles {
+interface CompraSimple {
   id: string
   cliente_id: string
+  cliente_nombre: string
   total: number
   created_at: string
-  clientes: { nombre: string; apellidos: string; email: string } | null
-  detalle_compras: {
+  productos: {
     id: string
-    producto_nombre: string
+    nombre: string
     cantidad: number
-    precio_unitario: number
-    subtotal: number
+    precio: number
   }[]
 }
 
 interface PurchasesTableProps {
-  compras: CompraConDetalles[]
+  compras: CompraSimple[]
 }
 
 export function PurchasesTable({ compras }: PurchasesTableProps) {
-  const [selectedCompra, setSelectedCompra] = useState<CompraConDetalles | null>(null)
+  const [selectedCompra, setSelectedCompra] = useState<CompraSimple | null>(null)
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("es-CO", {
@@ -76,7 +75,7 @@ export function PurchasesTable({ compras }: PurchasesTableProps) {
             <TableHead>Orden</TableHead>
             <TableHead>Cliente</TableHead>
             <TableHead>Fecha</TableHead>
-            <TableHead className="text-right">Productos</TableHead>
+            <TableHead className="text-right">Items</TableHead>
             <TableHead className="text-right">Total</TableHead>
             <TableHead className="w-16">Ver</TableHead>
           </TableRow>
@@ -88,18 +87,13 @@ export function PurchasesTable({ compras }: PurchasesTableProps) {
                 #{compra.id.slice(0, 8).toUpperCase()}
               </TableCell>
               <TableCell>
-                <div>
-                  <p className="font-medium">
-                    {compra.clientes?.nombre} {compra.clientes?.apellidos}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {compra.clientes?.email}
-                  </p>
+                <div className="font-medium">
+                  {compra.cliente_nombre}
                 </div>
               </TableCell>
               <TableCell>{formatDate(compra.created_at)}</TableCell>
               <TableCell className="text-right">
-                {compra.detalle_compras?.length || 0}
+                {compra.productos?.length || 0}
               </TableCell>
               <TableCell className="text-right font-bold text-primary">
                 {formatPrice(compra.total)}
@@ -134,30 +128,27 @@ export function PurchasesTable({ compras }: PurchasesTableProps) {
               <div className="rounded-lg bg-muted/30 p-4">
                 <p className="text-sm font-medium">Cliente</p>
                 <p className="text-lg">
-                  {selectedCompra.clientes?.nombre} {selectedCompra.clientes?.apellidos}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {selectedCompra.clientes?.email}
+                  {selectedCompra.cliente_nombre}
                 </p>
               </div>
 
               <div className="space-y-2">
                 <p className="text-sm font-medium">Productos</p>
-                {selectedCompra.detalle_compras?.map((detalle) => (
+                {selectedCompra.productos?.map((item) => (
                   <div
-                    key={detalle.id}
+                    key={item.id}
                     className="flex items-center justify-between rounded-lg bg-muted/30 p-3"
                   >
                     <div className="flex items-center gap-3">
                       <Package className="h-4 w-4 text-muted-foreground" />
                       <div>
-                        <p className="font-medium">{detalle.producto_nombre}</p>
+                        <p className="font-medium">{item.nombre}</p>
                         <p className="text-xs text-muted-foreground">
-                          {detalle.cantidad} x {formatPrice(detalle.precio_unitario)}
+                          {item.cantidad} x {formatPrice(item.precio)}
                         </p>
                       </div>
                     </div>
-                    <p className="font-medium">{formatPrice(detalle.subtotal)}</p>
+                    <p className="font-medium">{formatPrice(item.precio * item.cantidad)}</p>
                   </div>
                 ))}
               </div>
@@ -175,3 +166,4 @@ export function PurchasesTable({ compras }: PurchasesTableProps) {
     </>
   )
 }
+
