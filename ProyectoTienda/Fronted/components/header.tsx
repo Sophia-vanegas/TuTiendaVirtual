@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ShoppingCart, User, Store, Menu, X } from "lucide-react"
+import { ShoppingCart, User, Store, Menu, X, ShoppingBag } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useCart } from "@/contexts/cart-context"
 import { useAuth } from "@/contexts/auth-context"
@@ -131,46 +131,56 @@ export function Header() {
                 Tienda
               </Link>
               {user && (
-                <Link
-                  href="/mis-compras"
-                  className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-primary"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Mis Compras
-                </Link>
-              )}
-              {user?.rol === 'admin' && (
-                <Link
-                  href="/admin"
-                  className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-primary"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Administrar
-                </Link>
-              )}
-              <div className="mt-2 border-t border-border pt-2">
-                {user ? (
+                <>
                   <Link
                     href="/perfil"
-                    className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-primary"
+                    className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-primary flex items-center gap-2"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     <User className="h-4 w-4" />
                     Mi Perfil
                   </Link>
-                ) : (
-                  <div className="flex flex-col gap-2 px-3">
-                    <Link href="/auth/login" onClick={() => setMobileMenuOpen(false)}>
-                      <Button variant="outline" className="w-full">
-                        Ingresar
-                      </Button>
+                  {user.rol === "cliente" && (
+                    <Link
+                      href="/mis-compras"
+                      className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-primary flex items-center gap-2"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <ShoppingBag className="h-4 w-4" />
+                      Mis Compras
                     </Link>
-                    <Link href="/auth/registro" onClick={() => setMobileMenuOpen(false)}>
-                      <Button className="w-full">Registrarse</Button>
+                  )}
+                  {user.rol === 'admin' && (
+                    <Link
+                      href="/admin"
+                      className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-primary"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Administrar
                     </Link>
-                  </div>
-                )}
-              </div>
+                  )}
+                  <Button
+                    variant="ghost"
+                    className="justify-start gap-2 text-muted-foreground"
+                    onClick={() => { logout(); setMobileMenuOpen(false); }}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Cerrar Sesión
+                  </Button>
+                </>
+              )}
+              {!user && (
+                <div className="flex flex-col gap-2 px-3 pt-2">
+                  <Link href="/auth/login" onClick={() => setMobileMenuOpen(false)}>
+                    <Button variant="outline" className="w-full">
+                      Ingresar
+                    </Button>
+                  </Link>
+                  <Link href="/auth/registro" onClick={() => setMobileMenuOpen(false)}>
+                    <Button className="w-full">Registrarse</Button>
+                  </Link>
+                </div>
+              )}
             </nav>
           </div>
         )}

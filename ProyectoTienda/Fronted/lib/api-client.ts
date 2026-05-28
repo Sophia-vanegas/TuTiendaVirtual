@@ -63,7 +63,7 @@ export const apiClient = {
 
     // --- ADMIN METHODS ---
     async getAdminClientes() {
-        const response = await fetch(`${API_BASE_URL}/admin/clientes`)
+        const response = await fetch(`${API_BASE_URL}/admin/clientes`, { cache: 'no-store' })
         if (!response.ok) throw new Error('Error al obtener clientes')
         return response.json()
     },
@@ -75,7 +75,7 @@ export const apiClient = {
     },
 
     async getAdminProductos() {
-        const response = await fetch(`${API_BASE_URL}/admin/productos`)
+        const response = await fetch(`${API_BASE_URL}/admin/productos`, { cache: 'no-store' })
         if (!response.ok) throw new Error('Error al obtener productos')
         return response.json()
     },
@@ -107,14 +107,14 @@ export const apiClient = {
     },
 
     async getAdminCompras() {
-        const response = await fetch(`${API_BASE_URL}/admin/compras`)
+        const response = await fetch(`${API_BASE_URL}/admin/compras`, { cache: 'no-store' })
         if (!response.ok) throw new Error('Error al obtener compras')
         return response.json()
     },
 
     // --- CLIENT METHODS ---
     async getClienteProductos() {
-        const response = await fetch(`${API_BASE_URL}/cliente/productos`)
+        const response = await fetch(`${API_BASE_URL}/cliente/productos`, { cache: 'no-store' })
         if (!response.ok) throw new Error('Error al obtener productos')
         return response.json()
     },
@@ -135,8 +135,27 @@ export const apiClient = {
     },
 
     async getMisCompras(clienteId: string) {
-        const response = await fetch(`${API_BASE_URL}/cliente/compras/${clienteId}`)
+        const response = await fetch(`${API_BASE_URL}/cliente/compras/${clienteId}`, { cache: 'no-store' })
         if (!response.ok) throw new Error('Error al obtener mis compras')
+        return response.json()
+    },
+
+    async getProfile(userId: string) {
+        const response = await fetch(`${API_BASE_URL}/user/profile/${userId}`, { cache: 'no-store' })
+        if (!response.ok) throw new Error('Error al obtener perfil')
+        return response.json()
+    },
+
+    async updateProfile(userId: string, data: any) {
+        const response = await fetch(`${API_BASE_URL}/user/profile/${userId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        if (!response.ok) {
+            const error = await response.json()
+            throw new Error(error.detail || 'Error al actualizar perfil')
+        }
         return response.json()
     }
 }

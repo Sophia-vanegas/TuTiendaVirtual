@@ -109,65 +109,65 @@ export default function TiendaClientePage() {
                 <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
                     {/* Listado de Productos */}
                     <div className="lg:col-span-2">
-                        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
                             {productos.map((producto) => (
-                                <Card key={producto.id} className={producto.cantidad === 0 ? "opacity-75" : ""}>
-                                    <div className="aspect-video w-full overflow-hidden rounded-t-lg bg-muted">
+                                <Card key={producto.id} className={`group flex flex-col overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${producto.cantidad === 0 ? "grayscale opacity-80" : ""}`}>
+                                    <div className="relative aspect-square w-full overflow-hidden bg-muted">
                                         {producto.imagen_url ? (
                                             <img
                                                 src={producto.imagen_url}
                                                 alt={producto.nombre}
-                                                className="h-full w-full object-cover transition-transform hover:scale-105"
+                                                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                                             />
                                         ) : (
                                             <div className="flex h-full items-center justify-center">
-                                                <Package className="h-12 w-12 text-muted-foreground/50" />
+                                                <Package className="h-10 w-10 text-muted-foreground/40" />
                                             </div>
                                         )}
-                                    </div>
-                                    <CardHeader className="pb-2">
-                                        <div className="flex items-center justify-between">
-                                            <CardTitle className="text-lg">{producto.nombre}</CardTitle>
-                                            <span className="text-sm font-medium text-muted-foreground">{producto.tipo_producto}</span>
-                                        </div>
-                                        <p className="text-2xl font-bold text-primary">{formatPrice(producto.precio)}</p>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="flex items-center gap-2">
-                                            <span className={`text-xs font-semibold px-2 py-1 rounded-full ${producto.cantidad > 10 ? "bg-green-100 text-green-700" :
-                                                    producto.cantidad > 0 ? "bg-yellow-100 text-yellow-700" :
-                                                        "bg-red-100 text-red-700"
+                                        <div className="absolute top-2 right-2">
+                                            <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded-md shadow-sm ${producto.cantidad > 10 ? "bg-green-500 text-white" :
+                                                    producto.cantidad > 0 ? "bg-amber-500 text-white" :
+                                                        "bg-red-500 text-white"
                                                 }`}>
                                                 {producto.cantidad > 0 ? `Stock: ${producto.cantidad}` : "Agotado"}
                                             </span>
                                         </div>
+                                    </div>
+                                    <CardHeader className="p-4 pb-0">
+                                        <div className="space-y-1">
+                                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{producto.tipo_producto}</p>
+                                            <CardTitle className="text-base line-clamp-1 group-hover:text-primary transition-colors">{producto.nombre}</CardTitle>
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent className="p-4 pt-2 flex-grow">
+                                        <p className="text-xl font-black text-primary">{formatPrice(producto.precio)}</p>
                                     </CardContent>
-                                    <CardFooter className="pt-2">
+                                    <CardFooter className="p-4 pt-0">
                                         {producto.cantidad > 0 ? (
-                                            <div className="flex w-full items-center gap-2">
-                                                <div className="flex items-center gap-1">
-                                                    <span className="text-xs text-muted-foreground">Cant:</span>
+                                            <div className="flex flex-col w-full gap-2">
+                                                <div className="flex items-center justify-between gap-2 p-1 bg-muted/50 rounded-lg border border-border/50">
+                                                    <span className="text-[10px] font-bold px-2 text-muted-foreground">CANT:</span>
                                                     <Input
                                                         type="number"
                                                         min="1"
                                                         max={producto.cantidad}
                                                         value={cantidades[producto.id]}
                                                         onChange={(e) => handleCantidadChange(producto.id, e.target.value, producto.cantidad)}
-                                                        className="h-9 w-16 px-2"
+                                                        className="h-7 w-12 text-xs border-none bg-transparent focus-visible:ring-0 text-center font-bold"
                                                     />
                                                 </div>
                                                 <Button
-                                                    className="w-full gap-2"
+                                                    className="w-full gap-2 h-9 text-xs font-bold shadow-md hover:shadow-lg transition-all active:scale-95"
                                                     size="sm"
                                                     onClick={() => handleAddToCart(producto)}
                                                 >
-                                                    <ShoppingBag className="h-4 w-4" />
-                                                    Agregar
+                                                    <ShoppingBag className="h-3.5 w-3.5" />
+                                                    AGREGAR
                                                 </Button>
                                             </div>
                                         ) : (
-                                            <Button variant="outline" className="w-full" disabled>
-                                                Agotado
+                                            <Button variant="outline" className="w-full h-9 text-xs font-bold" disabled>
+                                                NO DISPONIBLE
                                             </Button>
                                         )}
                                     </CardFooter>
