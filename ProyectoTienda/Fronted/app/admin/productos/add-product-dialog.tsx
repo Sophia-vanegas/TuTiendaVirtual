@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
+import { apiClient } from "@/lib/api-client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -32,18 +32,25 @@ export function AddProductDialog() {
     e.preventDefault()
     setIsLoading(true)
 
-    const supabase = createClient()
-    await supabase.from("productos").insert({
-      nombre: formData.nombre,
-      tipo_producto: formData.tipo_producto.toLowerCase(),
-      cantidad: formData.cantidad,
-      precio: formData.precio,
-    })
-
-    setFormData({ nombre: "", tipo_producto: "", cantidad: 0, precio: 0 })
-    setOpen(false)
-    setIsLoading(false)
-    router.refresh()
+    try {
+      const now = new Date().toISOString()
+      await apiClient.addProducto({
+        id: Math.random().toString(36).substr(2, 9),
+        nombre: formData.nombre,
+        tipo_producto: formData.tipo_producto.toLowerCase(),
+        cantidad: formData.cantidad,
+        precio: formData.precio,
+        created_at: now,
+        updated_at: now,
+      })
+      setFormData({ nombre: "", tipo_producto: "", cantidad: 0, precio: 0 })
+      setOpen(false)
+      router.refresh()
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (

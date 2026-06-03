@@ -1,10 +1,10 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
+import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { useAuth } from "@/contexts/auth-context"
 import {
   LayoutDashboard,
   Package,
@@ -15,10 +15,6 @@ import {
   ChevronLeft,
 } from "lucide-react"
 
-interface AdminSidebarProps {
-  user: { email: string }
-}
-
 const menuItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/productos", label: "Productos", icon: Package },
@@ -26,15 +22,12 @@ const menuItems = [
   { href: "/admin/compras", label: "Compras", icon: ShoppingCart },
 ]
 
-export function AdminSidebar({ user }: AdminSidebarProps) {
+export function AdminSidebar() {
   const pathname = usePathname()
-  const router = useRouter()
+  const { user, logout } = useAuth()
 
-  const handleLogout = async () => {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    router.push("/")
-    router.refresh()
+  const handleLogout = () => {
+    logout()
   }
 
   return (
@@ -67,7 +60,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
 
       <div className="border-t border-sidebar-border p-4">
         <div className="mb-3 truncate text-sm text-sidebar-foreground/70">
-          {user.email}
+          {user?.email}
         </div>
         <div className="flex flex-col gap-2">
           <Link href="/">

@@ -1,27 +1,19 @@
-import { createClient } from "@/lib/supabase/server"
+import { apiClient } from "@/lib/api-client"
 import { Header } from "@/components/header"
 import { ProductCard } from "@/components/product-card"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Package, Truck, Shield } from "lucide-react"
+import { ArrowRight, Package, Truck, Shield, MapPin, Phone, Mail } from "lucide-react"
 import Link from "next/link"
 
 export default async function HomePage() {
-  const supabase = await createClient()
+  const user = null // Temporalmente sin usuario
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const productos = await apiClient.getProductos()
 
-  const { data: productos } = await supabase
-    .from("productos")
-    .select("*")
-    .gt("cantidad", 0)
-    .order("created_at", { ascending: false })
-    .limit(8)
 
   return (
     <div className="min-h-screen bg-background">
-      <Header user={user} />
+      <Header />
 
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-background to-accent/10 py-16 md:py-24">
@@ -36,7 +28,7 @@ export default async function HomePage() {
               la comodidad de tu hogar y recibe en tu puerta.
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <Link href="/productos">
+              <Link href="/cliente/tienda">
                 <Button size="lg" className="gap-2">
                   Ver Productos
                   <ArrowRight className="h-4 w-4" />
@@ -89,64 +81,102 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Featured Products */}
-      <section className="py-16">
+      {/* Store Information Section */}
+      <section className="py-20 bg-muted/30">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-8 flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold text-foreground">Productos Destacados</h2>
-              <p className="mt-1 text-muted-foreground">
-                Lo mejor de nuestra tienda para ti
-              </p>
-            </div>
-            <Link href="/productos">
-              <Button variant="ghost" className="gap-2">
-                Ver todos
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
+          <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
 
-          {productos && productos.length > 0 ? (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-              {productos.map((producto) => (
-                <ProductCard key={producto.id} producto={producto} />
-              ))}
-            </div>
-          ) : (
-            <div className="rounded-lg border border-dashed border-border bg-muted/30 py-16 text-center">
-              <Package className="mx-auto h-12 w-12 text-muted-foreground" />
-              <h3 className="mt-4 text-lg font-medium text-foreground">
-                No hay productos disponibles
-              </h3>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Pronto agregaremos nuevos productos a nuestra tienda
+            {/* Historia y Misión */}
+            <div className="space-y-6">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider">
+                Nuestra Tradición
+              </div>
+              <h2 className="text-3xl font-bold text-foreground md:text-4xl">Mas que una tienda, somos tu familia</h2>
+              <p className="text-lg text-muted-foreground leading-relaxed">
+                Nacimos hace más de 15 años como un pequeño sueño familiar en el corazón del barrio. Nuestra misión siempre ha sido proveer alimentos frescos y productos de calidad con el calor humano que nos caracteriza. Hoy, evolucionamos digitalmente para seguir a tu lado, sin perder la esencia de la tienda de la esquina.
               </p>
+              <div className="grid grid-cols-2 gap-4 pt-4">
+                <div className="p-4 bg-background rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow">
+                  <p className="text-3xl font-bold text-primary">15+</p>
+                  <p className="text-sm text-muted-foreground">Años de experiencia</p>
+                </div>
+                <div className="p-4 bg-background rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow">
+                  <p className="text-3xl font-bold text-primary">5000+</p>
+                  <p className="text-sm text-muted-foreground">Clientes felices</p>
+                </div>
+              </div>
             </div>
-          )}
+
+            {/* Contacto y Ubicación */}
+            <div className="grid gap-6">
+              {/* Ubicación */}
+              <div className="group relative overflow-hidden rounded-2xl border border-border bg-background p-6 shadow-sm hover:shadow-xl transition-all duration-300">
+                <a
+                  href="https://maps.app.goo.gl/dWiJ2queKUSkHF2E8"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block group/map cursor-pointer"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary group-hover/map:bg-primary group-hover/map:text-white transition-colors duration-300">
+                      <MapPin className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold">Nuestra Ubicación</h3>
+                      <p className="mt-1 text-muted-foreground">Calle Principal #12 - 45, Barrio Central</p>
+                      <p className="text-sm text-primary font-medium mt-2 hover:underline">Ver en Google Maps →</p>
+                    </div>
+                  </div>
+                  {/* Simulación de mapa interactivo */}
+                  <div className="mt-4 h-32 w-full rounded-xl bg-muted overflow-hidden relative grayscale group-hover/map:grayscale-0 transition-all duration-500">
+                    <img src="https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?w=800" className="w-full h-full object-cover opacity-50 group-hover/map:opacity-100 transition-opacity" alt="Mapa" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="bg-background/80 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-bold shadow-sm">ENCUÉNTRANOS AQUÍ</span>
+                    </div>
+                  </div>
+                </a>
+              </div>
+
+              {/* Contacto */}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="group rounded-2xl border border-border bg-background p-6 hover:border-primary/50 transition-colors">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100 text-orange-600 mb-4 group-hover:scale-110 transition-transform">
+                    <Phone className="h-5 w-5" />
+                  </div>
+                  <h4 className="font-bold">Llámanos</h4>
+                  <p className="text-sm text-muted-foreground mt-1">+57 (310) 123 4567</p>
+                </div>
+                <div className="group rounded-2xl border border-border bg-background p-6 hover:border-primary/50 transition-colors">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-blue-600 mb-4 group-hover:scale-110 transition-transform">
+                    <Mail className="h-5 w-5" />
+                  </div>
+                  <h4 className="font-bold">Escríbenos</h4>
+                  <p className="text-sm text-muted-foreground mt-1">hola@tienda.com</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
         </div>
       </section>
 
       {/* CTA Section */}
       {!user && (
-        <section className="bg-primary py-16">
+        <section className="bg-primary/5 py-16 border-t border-border">
           <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
-            <h2 className="text-2xl font-bold text-primary-foreground md:text-3xl">
-              Unete a nuestra comunidad
+            <h2 className="text-3xl font-black text-foreground md:text-4xl">
+              ¿Listo para tu pedido?
             </h2>
-            <p className="mx-auto mt-4 max-w-2xl text-primary-foreground/80">
-              Registrate hoy y disfruta de todos los beneficios de comprar en tu
-              tienda de barrio favorita.
+            <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
+              Regístrate hoy y recibe tus productos favoritos en la comodidad de tu hogar.
             </p>
-            <Link href="/auth/registro">
-              <Button
-                size="lg"
-                variant="secondary"
-                className="mt-8"
-              >
-                Registrarse Ahora
-              </Button>
-            </Link>
+            <div className="mt-8 flex justify-center gap-4">
+              <Link href="/auth/registro">
+                <Button size="lg" className="rounded-full px-8 shadow-lg shadow-primary/20">
+                  Registrarse Ahora
+                </Button>
+              </Link>
+            </div>
           </div>
         </section>
       )}

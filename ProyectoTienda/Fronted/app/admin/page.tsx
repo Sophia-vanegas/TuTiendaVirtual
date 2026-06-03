@@ -1,36 +1,17 @@
-import { createClient } from "@/lib/supabase/server"
+import { apiClient } from "@/lib/api-client"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Package, Users, ShoppingCart, DollarSign } from "lucide-react"
 
 export default async function AdminDashboardPage() {
-  const supabase = await createClient()
+  const productos = await apiClient.getAdminProductos()
+  const clientes = await apiClient.getAdminClientes()
+  const compras = await apiClient.getAdminCompras()
 
-  const { count: productosCount } = await supabase
-    .from("productos")
-    .select("*", { count: "exact", head: true })
-
-  const { count: clientesCount } = await supabase
-    .from("clientes")
-    .select("*", { count: "exact", head: true })
-
-  const { count: comprasCount } = await supabase
-    .from("compras")
-    .select("*", { count: "exact", head: true })
-
-  const { data: ventasData } = await supabase
-    .from("compras")
-    .select("total")
-
-  const totalVentas = ventasData?.reduce((sum, compra) => sum + compra.total, 0) || 0
-
-  const { data: recentCompras } = await supabase
-    .from("compras")
-    .select(`
-      *,
-      clientes (nombre, apellidos)
-    `)
-    .order("created_at", { ascending: false })
-    .limit(5)
+  const productosCount = productos.length
+  const clientesCount = clientes.length
+  const comprasCount = compras.length
+  const totalVentas = compras.reduce((sum: number, compra: any) => sum + (compra.total || 0), 0)
+  const recentCompras = compras.slice(0, 5)
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("es-CO", {
@@ -48,6 +29,7 @@ export default async function AdminDashboardPage() {
       minute: "2-digit",
     })
   }
+
 
   return (
     <div className="p-8">
@@ -119,7 +101,7 @@ export default async function AdminDashboardPage() {
                 >
                   <div>
                     <p className="font-medium">
-                      {compra.clientes?.nombre} {compra.clientes?.apellidos}
+                      {compra.cliente_nombre}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       {formatDate(compra.created_at)}

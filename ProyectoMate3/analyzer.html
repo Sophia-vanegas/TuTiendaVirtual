@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OptiMath – Analizador f(x,y)</title>
+    <meta name="description" content="Analizador interactivo de funciones de dos variables: derivadas parciales, puntos críticos, hessiano y gráfica 3D.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+
+    <!-- math.js – parseo y derivación simbólica -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.3/math.min.js"></script>
+
+    <!-- Plotly – gráfica 3D interactiva -->
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+
+    <link rel="stylesheet" href="analyzer.css">
+</head>
+<body>
+
+<!-- ══ HEADER ══════════════════════════════════════════════ -->
+<header class="hero">
+    <div class="hero-orb orb1"></div>
+    <div class="hero-orb orb2"></div>
+    <div class="hero-badge"><span class="pulse-dot"></span>Analizador Interactivo</div>
+    <h1 class="hero-title">OptiMath</h1>
+    <p class="hero-sub">Análisis de Funciones de Dos Variables <em>f(x, y)</em></p>
+    <p class="hero-desc">Derivadas parciales · Puntos críticos · Hessiano · Gráfica 3D interactiva</p>
+</header>
+
+<!-- ══ CONTROLES SUPERIORES ════════════════════════════════ -->
+<div class="top-bar">
+    <div class="top-bar-inner">
+
+        <div class="func-row">
+            <span class="func-label">f(x, y) =</span>
+            <input type="text" id="func-input" class="func-field"
+                   value="x**2 + y**2" autocomplete="off" spellcheck="false"
+                   placeholder="Ej: x**2 - y**2  |  sin(x)*cos(y)">
+        </div>
+
+        <div class="params-row">
+            <label class="param-lbl">x<sub>min</sub><input type="number" id="xmin" value="-3" step="0.5" class="num-field"></label>
+            <label class="param-lbl">x<sub>max</sub><input type="number" id="xmax" value="3"  step="0.5" class="num-field"></label>
+            <label class="param-lbl">y<sub>min</sub><input type="number" id="ymin" value="-3" step="0.5" class="num-field"></label>
+            <label class="param-lbl">y<sub>max</sub><input type="number" id="ymax" value="3"  step="0.5" class="num-field"></label>
+
+            <button id="btn-analizar" class="btn-analyze">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                          d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+                Analizar
+            </button>
+
+            <select id="ejemplos" class="select-examples">
+                <option value="">— Ejemplos —</option>
+                <option value="x**2 + y**2||-3|3|-3|3">x²+y²  (mínimo)</option>
+                <option value="-x**2 - y**2||-3|3|-3|3">-x²-y²  (máximo)</option>
+                <option value="x**2 - y**2||-3|3|-3|3">x²-y²  (silla)</option>
+                <option value="sin(x)*cos(y)||-4|4|-4|4">sin(x)·cos(y)</option>
+                <option value="x**3 - 3*x*y**2||-2|2|-2|2">x³-3xy²</option>
+                <option value="x**2 + y**2 - x*y - x||-3|3|-3|3">x²+y²-xy-x</option>
+            </select>
+        </div>
+
+        <div id="error-bar" class="error-bar hidden"></div>
+    </div>
+</div>
+
+<!-- ══ CUERPO PRINCIPAL ════════════════════════════════════ -->
+<main class="main-grid">
+
+    <!-- Gráfica 3D -->
+    <section class="panel panel--plot" id="panel-plot">
+        <div class="panel-hdr hdr-blue">
+            <span class="panel-num">①</span>
+            <div>
+                <h2 class="panel-title">Superficie 3D Interactiva</h2>
+                <p class="panel-sub">Arrastra para rotar · Scroll para zoom · Puntos críticos marcados</p>
+            </div>
+        </div>
+        <div id="plot3d" class="plot3d-container"></div>
+    </section>
+
+    <!-- Teclado en pantalla -->
+    <section class="panel panel--kbd" id="panel-kbd">
+        <div class="panel-hdr hdr-violet">
+            <span class="panel-num">②</span>
+            <div>
+                <h2 class="panel-title">Teclado Científico</h2>
+                <p class="panel-sub">Haz clic para insertar en la posición del cursor</p>
+            </div>
+        </div>
+        <div id="keyboard" class="keyboard"></div>
+    </section>
+
+    <!-- Proceso matemático -->
+    <section class="panel panel--steps" id="panel-steps" style="display:none">
+        <div class="panel-hdr hdr-dark">
+            <span class="panel-num">③</span>
+            <div>
+                <h2 class="panel-title">Proceso Matemático Paso a Paso</h2>
+                <p class="panel-sub">Derivadas parciales · Sistema · Hessiano · Clasificación</p>
+            </div>
+        </div>
+        <div id="steps-content" class="steps-content"></div>
+    </section>
+
+    <!-- Tabla de puntos críticos -->
+    <section class="panel panel--table" id="panel-table" style="display:none">
+        <div class="panel-hdr hdr-green">
+            <span class="panel-num">④</span>
+            <div>
+                <h2 class="panel-title">Tabla de Puntos Críticos</h2>
+                <p class="panel-sub">Clasificación completa por el criterio del Hessiano</p>
+            </div>
+        </div>
+        <div class="table-wrap">
+            <table class="crit-table">
+                <thead>
+                    <tr><th>(x₀, y₀)</th><th>f(x₀,y₀)</th><th>A=f<sub>xx</sub></th><th>B=f<sub>xy</sub></th><th>C=f<sub>yy</sub></th><th>D=AC-B²</th><th>Tipo</th></tr>
+                </thead>
+                <tbody id="table-body"></tbody>
+            </table>
+        </div>
+        <div id="global-summary" class="global-summary"></div>
+    </section>
+
+</main>
+
+<footer class="footer">
+    <p>© 2026 OptiMath Labs — Analizador f(x,y) &nbsp;·&nbsp; math.js · Plotly · KaTeX</p>
+</footer>
+
+<script src="analyzer.js"></script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server"
+import { apiClient } from "@/lib/api-client"
 import { Header } from "@/components/header"
 import { ProductCard } from "@/components/product-card"
 import { Package, Search } from "lucide-react"
@@ -10,34 +10,17 @@ interface ProductosPageProps {
 
 export default async function ProductosPage({ searchParams }: ProductosPageProps) {
   const params = await searchParams
-  const supabase = await createClient()
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  // Temporalmente sin usuario hasta implementar auth en FastAPI
+  const user = null
 
-  let query = supabase.from("productos").select("*").gt("cantidad", 0)
+  const productos = await apiClient.getProductos(params.tipo, params.buscar)
+  const tipos = await apiClient.getTipos()
 
-  if (params.tipo) {
-    query = query.eq("tipo_producto", params.tipo)
-  }
-
-  if (params.buscar) {
-    query = query.ilike("nombre", `%${params.buscar}%`)
-  }
-
-  const { data: productos } = await query.order("nombre", { ascending: true })
-
-  const { data: tiposData } = await supabase
-    .from("productos")
-    .select("tipo_producto")
-    .gt("cantidad", 0)
-
-  const tipos = [...new Set(tiposData?.map((p) => p.tipo_producto) || [])]
 
   return (
     <div className="min-h-screen bg-background">
-      <Header user={user} />
+      <Header />
 
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">

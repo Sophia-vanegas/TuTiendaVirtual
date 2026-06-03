@@ -1,41 +1,42 @@
-import { createClient } from "@/lib/supabase/server"
+"use client"
+
+import { useState, useEffect } from "react"
 import { Header } from "@/components/header"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Package, ShoppingBag, Calendar, ArrowRight } from "lucide-react"
+import { Package, ShoppingBag, Calendar, ArrowRight, Loader2 } from "lucide-react"
 import Link from "next/link"
-import { redirect } from "next/navigation"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/contexts/auth-context"
+import { apiClient } from "@/lib/api-client"
 
-export default async function MisComprasPage() {
-  const supabase = await createClient()
+export default function MisComprasPage() {
+  const { user, isLoading: isAuthLoading } = useAuth()
+  const [compras, setCompras] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter()
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  useEffect(() => {
+    if (!isAuthLoading) {
+      if (!user) {
+        router.push("/auth/login?redirect=/mis-compras")
+      } else {
+        cargarCompras()
+      }
+    }
+  }, [user, isAuthLoading, router])
 
-  if (!user) {
-    redirect("/auth/login?redirect=/mis-compras")
-  }
-
-  const { data: cliente } = await supabase
-    .from("clientes")
-    .select("*")
-    .eq("user_id", user.id)
-    .single()
-
-  let compras: any[] = []
-
-  if (cliente) {
-    const { data: comprasData } = await supabase
-      .from("compras")
-      .select(`
-        *,
-        detalle_compras (*)
-      `)
-      .eq("cliente_id", cliente.id)
-      .order("created_at", { ascending: false })
-
-    compras = comprasData || []
+  const cargarCompras = async () => {
+    if (!user) return
+    setIsLoading(true)
+    try {
+      const data = await apiClient.getMisCompras(user.id)
+      setCompras(data)
+    } catch (error) {
+      console.error("Error al cargar compras:", error)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const formatPrice = (price: number) => {
@@ -56,9 +57,20 @@ export default async function MisComprasPage() {
     })
   }
 
+  if (isAuthLoading || isLoading) {
+    return (
+      <div className="flex min-h-screen flex-col bg-background">
+        <Header />
+        <div className="flex flex-1 items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-background">
-      <Header user={user} />
+      <Header />
       <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground">Mis Compras</h1>
@@ -88,28 +100,28 @@ export default async function MisComprasPage() {
                     <div className="text-right">
                       <p className="text-lg font-bold text-primary">{formatPrice(compra.total)}</p>
                       <p className="text-xs text-muted-foreground">
-                        {compra.detalle_compras?.length || 0} producto(s)
+                        {compra.productos?.length || 0} producto(s)
                       </p>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    {compra.detalle_compras?.map((detalle: any) => (
+                    {compra.productos?.map((item: any) => (
                       <div
-                        key={detalle.id}
+                        key={item.id}
                         className="flex items-center justify-between rounded-lg bg-muted/30 p-3"
                       >
                         <div className="flex items-center gap-3">
                           <Package className="h-4 w-4 text-muted-foreground" />
                           <div>
-                            <p className="font-medium text-sm">{detalle.producto_nombre}</p>
+                            <p className="font-medium text-sm">{item.nombre}</p>
                             <p className="text-xs text-muted-foreground">
-                              {detalle.cantidad} x {formatPrice(detalle.precio_unitario)}
+                              {item.cantidad} x {formatPrice(item.precio)}
                             </p>
                           </div>
                         </div>
-                        <p className="font-medium">{formatPrice(detalle.subtotal)}</p>
+                        <p className="font-medium">{formatPrice(item.precio * item.cantidad)}</p>
                       </div>
                     ))}
                   </div>
@@ -127,9 +139,9 @@ export default async function MisComprasPage() {
               <p className="mt-2 text-sm text-muted-foreground">
                 Explora nuestros productos y realiza tu primera compra
               </p>
-              <Link href="/productos">
+              <Link href="/cliente/tienda">
                 <Button className="mt-6 gap-2">
-                  Ver Productos
+                  Ir a la Tienda
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>

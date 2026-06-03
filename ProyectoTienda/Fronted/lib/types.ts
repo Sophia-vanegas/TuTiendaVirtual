@@ -16,6 +16,7 @@ export interface Producto {
   tipo_producto: string
   cantidad: number
   precio: number
+  imagen_url?: string
   created_at: string
   updated_at: string
 }
@@ -45,9 +46,6 @@ export interface CartItem {
 export interface User {
   id: string
   email: string
-  user_metadata: {
-    is_admin?: boolean
-    nombre?: string
-    apellidos?: string
-  }
+  nombre: string
+  rol: string
 }

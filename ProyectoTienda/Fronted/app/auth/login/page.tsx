@@ -3,7 +3,8 @@
 import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
-import { createClient } from "@/lib/supabase/client"
+import { apiClient } from "@/lib/api-client"
+import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -16,6 +17,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const { login } = useAuth()
   const searchParams = useSearchParams()
   const redirect = searchParams.get("redirect") || "/"
 
@@ -24,21 +26,23 @@ export default function LoginPage() {
     setError(null)
     setIsLoading(true)
 
-    const supabase = createClient()
+    try {
+      const data = await apiClient.login(email, password)
+      login(data)
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-
-    if (error) {
-      setError("Correo o contrasena incorrectos")
+      if (data.rol === 'admin') {
+        router.push('/admin')
+      } else if (data.rol === 'cliente') {
+        router.push('/cliente/tienda')
+      } else {
+        router.push(redirect === '/' ? '/productos' : redirect)
+      }
+      router.refresh()
+    } catch (err: any) {
+      setError(err.message || "Credenciales incorrectas")
+    } finally {
       setIsLoading(false)
-      return
     }
-
-    router.push(redirect)
-    router.refresh()
   }
 
   return (

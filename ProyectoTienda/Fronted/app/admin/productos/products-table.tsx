@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
+import { apiClient } from "@/lib/api-client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -58,33 +58,37 @@ export function ProductsTable({ productos }: ProductsTableProps) {
     if (!editingProduct) return
     setIsLoading(true)
 
-    const supabase = createClient()
-    await supabase
-      .from("productos")
-      .update({
+    try {
+      await apiClient.updateProducto(editingProduct.id, {
+        ...editingProduct,
         nombre: formData.nombre,
         tipo_producto: formData.tipo_producto,
         cantidad: formData.cantidad,
         precio: formData.precio,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", editingProduct.id)
-
-    setEditingProduct(null)
-    setIsLoading(false)
-    router.refresh()
+      setEditingProduct(null)
+      router.refresh()
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleDelete = async () => {
     if (!deletingProduct) return
     setIsLoading(true)
 
-    const supabase = createClient()
-    await supabase.from("productos").delete().eq("id", deletingProduct.id)
-
-    setDeletingProduct(null)
-    setIsLoading(false)
-    router.refresh()
+    try {
+      await apiClient.deleteProducto(deletingProduct.id)
+      setDeletingProduct(null)
+      router.refresh()
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   if (productos.length === 0) {

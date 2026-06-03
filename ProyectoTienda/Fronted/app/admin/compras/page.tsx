@@ -1,18 +1,10 @@
-import { createClient } from "@/lib/supabase/server"
+import { apiClient } from "@/lib/api-client"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { PurchasesTable } from "./purchases-table"
 
 export default async function AdminComprasPage() {
-  const supabase = await createClient()
+  const compras = await apiClient.getAdminCompras()
 
-  const { data: compras } = await supabase
-    .from("compras")
-    .select(`
-      *,
-      clientes (nombre, apellidos, email),
-      detalle_compras (*)
-    `)
-    .order("created_at", { ascending: false })
 
   return (
     <div className="p-8">

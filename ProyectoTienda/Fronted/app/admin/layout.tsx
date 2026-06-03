@@ -1,27 +1,35 @@
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
-import { AdminSidebar } from "./admin-sidebar"
+"use client"
 
-export default async function AdminLayout({
+import { useAuth } from "@/contexts/auth-context"
+import { useRouter } from "next/navigation"
+import { useEffect } from "react"
+import { AdminSidebar } from "./admin-sidebar"
+import { Loader2 } from "lucide-react"
+
+export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const supabase = await createClient()
+  const { user, isLoading } = useAuth()
+  const router = useRouter()
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  useEffect(() => {
+    if (!isLoading) {
+      if (!user) {
+        router.push("/auth/login?redirect=/admin")
+      } else if (user.rol !== 'admin') {
+        router.push("/")
+      }
+    }
+  }, [user, isLoading, router])
 
-  if (!user) {
-    redirect("/auth/login?redirect=/admin")
-  }
-
-  // Check if user is admin
-  const isAdmin = user.user_metadata?.is_admin === true
-
-  if (!isAdmin) {
-    redirect("/")
+  if (isLoading || !user || user.rol !== 'admin') {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
   }
 
   return (
